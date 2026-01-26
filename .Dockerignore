@@ -1,0 +1,15 @@
+# Archivos de sistema y logs
+
+**pycache**
+_.pyc
+_.pyo
+\*.pyd
+.Python
+env/
+venv/
+.git/
+.gitignore
+
+# Archivos locales de entorno (¡No quemar secretos en la imagen!)
+
+.env
