@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from plantbioengine import PlantBioEngine
 
+# Configuración de Logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -20,7 +21,22 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
-CORS(app, resources={r"/*": {"origins": "*"}})
+
+# --- CORRECCIÓN CORS ---
+# Cambiamos el wildcard "*" por la lista explícita de orígenes permitidos.
+# Esto es obligatorio si supports_credentials=True o para evitar bloqueos de seguridad.
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:5173",            # Tu entorno local
+            "https://agro-sync-three.vercel.app" # Tu producción
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
+# -----------------------
 
 try:
     engine = PlantBioEngine()
@@ -63,15 +79,11 @@ def analyze_plant():
             return jsonify({"error": "Falta 'image_url' o 'image_base64'"}), 400
 
         # [TODO: PROD] Recuperar coordenadas reales del dron
-        # lat = data.get('lat')
-        # lon = data.get('lon')
-        # Por ahora forzamos None para búsqueda global
         lat = None
         lon = None
 
         logger.info(f"Procesando imagen (Modo Demo)... (Tamaño: {len(image_bytes)} bytes)")
         
-        # Llamamos pasando None explícitamente para documentar la intención
         result = engine.analyze_full_spectrum(image_bytes, lat=lat, lon=lon)
 
         if "error" in result:
